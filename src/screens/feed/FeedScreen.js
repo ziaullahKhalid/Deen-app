@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   FlatList,
@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Typography, Spacing, BorderRadius } from '../../theme';
@@ -17,92 +18,59 @@ import PostCard from '../../components/feed/PostCard';
 import CreatePostCard from '../../components/feed/CreatePostCard';
 import Avatar from '../../components/common/Avatar';
 import Button from '../../components/common/Button';
-
-const DEMO_POSTS = [
-  {
-    id: '1',
-    authorName: 'Ahmad Al-Farsi',
-    authorAvatar: null,
-    content: 'SubhanAllah! The beauty of the morning sky reminds us of the greatness of our Creator. Every sunrise is a blessing and a new opportunity to do good deeds. Let us make the most of this beautiful day. #IslamicQadeem #MorningBlessings',
-    imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600',
-    likesCount: 142,
-    commentsCount: 23,
-    sharesCount: 8,
-    createdAt: new Date(Date.now() - 3600000),
-  },
-  {
-    id: '2',
-    authorName: 'Fatima Zahra',
-    authorAvatar: null,
-    content: 'Just finished reading Surah Al-Kahf. The stories in this surah are timeless and so relevant to our modern lives. May Allah guide us all to the straight path.',
-    imageUrl: null,
-    likesCount: 89,
-    commentsCount: 15,
-    sharesCount: 12,
-    createdAt: new Date(Date.now() - 7200000),
-  },
-  {
-    id: '3',
-    authorName: 'Omar Ibn Abdullah',
-    authorAvatar: null,
-    content: 'Beautiful mosque architecture from around the world. The craftsmanship and dedication that went into building these sacred spaces is truly inspiring.',
-    imageUrl: 'https://images.unsplash.com/photo-1564769625905-50e93615e769?w=600',
-    likesCount: 256,
-    commentsCount: 34,
-    sharesCount: 45,
-    createdAt: new Date(Date.now() - 14400000),
-  },
-  {
-    id: '4',
-    authorName: 'Aisha Begum',
-    authorAvatar: null,
-    content: 'Reminder: "The best among you are those who have the best manners and character." - Prophet Muhammad (PBUH). Let us strive to embody this hadith in our daily lives.',
-    imageUrl: null,
-    likesCount: 312,
-    commentsCount: 41,
-    sharesCount: 67,
-    createdAt: new Date(Date.now() - 28800000),
-  },
-  {
-    id: '5',
-    authorName: 'Yusuf Al-Qahtani',
-    authorAvatar: null,
-    content: 'Alhamdulillah for another blessed Friday. Jummah Mubarak to all the brothers and sisters around the world!',
-    imageUrl: 'https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?w=600',
-    likesCount: 478,
-    commentsCount: 56,
-    sharesCount: 89,
-    createdAt: new Date(Date.now() - 43200000),
-  },
-];
+import { createPost, getPosts, likePost, unlikePost } from '../../services/feedService';
+import { getCurrentUser } from '../../services/authService';
 
 const FeedScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
-  const [posts, setPosts] = useState(DEMO_POSTS);
+  const [posts, setPosts] = useState([]);
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [newPostText, setNewPostText] = useState('');
+  const [initialLoading, setInitialLoading] = useState(true);
 
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 1500);
+  const user = getCurrentUser();
+
+  const loadPosts = async () => {
+    try {
+      const fetchedPosts = await getPosts(50);
+      const formattedPosts = fetchedPosts.map((post) => ({
+        ...post,
+        authorName: post.authorName || post.displayName || 'User',
+        authorAvatar: post.authorAvatar || post.photoURL || null,
+        createdAt: post.createdAt?.toDate ? post.createdAt.toDate() : new Date(),
+      }));
+      setPosts(formattedPosts);
+    } catch (err) {
+      console.log('Error loading posts:', err);
+    }
+  };
+
+  useEffect(() => {
+    loadPosts().finally(() => setInitialLoading(false));
   }, []);
 
-  const handleCreatePost = () => {
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await loadPosts();
+    setRefreshing(false);
+  }, []);
+
+  const handleCreatePost = async () => {
     if (!newPostText.trim()) return;
-    const newPost = {
-      id: Date.now().toString(),
-      authorName: 'You',
-      authorAvatar: null,
-      content: newPostText,
-      imageUrl: null,
-      likesCount: 0,
-      commentsCount: 0,
-      sharesCount: 0,
-      createdAt: new Date(),
-    };
-    setPosts([newPost, ...posts]);
-    setNewPostText('');
-    setShowCreatePost(false);
+    try {
+      await createPost({
+        authorId: user?.uid || 'anonymous',
+        authorName: user?.displayName || 'You',
+        authorAvatar: user?.photoURL || null,
+        content: newPostText.trim(),
+        imageUrl: null,
+      });
+      setNewPostText('');
+      setShowCreatePost(false);
+      await loadPosts();
+    } catch (err) {
+      Alert.alert('Error', 'Failed to create post. Please try again.');
+    }
   };
 
   const renderItem = ({ item, index }) => {
@@ -141,9 +109,15 @@ const FeedScreen = () => {
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Ionicons name="newspaper-outline" size={64} color={Colors.textLight} />
-            <Text style={styles.emptyText}>No posts yet</Text>
-            <Text style={styles.emptySubtext}>Be the first to share something!</Text>
+            {initialLoading ? (
+              <ActivityIndicator size="large" color={Colors.primary} />
+            ) : (
+              <>
+                <Ionicons name="newspaper-outline" size={64} color={Colors.textLight} />
+                <Text style={styles.emptyText}>No posts yet</Text>
+                <Text style={styles.emptySubtext}>Be the first to share something!</Text>
+              </>
+            )}
           </View>
         }
       />
@@ -167,8 +141,8 @@ const FeedScreen = () => {
             </View>
             <View style={styles.modalBody}>
               <View style={styles.authorRow}>
-                <Avatar name="You" size={40} />
-                <Text style={styles.authorLabel}>You</Text>
+                <Avatar name={user?.displayName || 'You'} size={40} />
+                <Text style={styles.authorLabel}>{user?.displayName || 'You'}</Text>
               </View>
               <TextInput
                 style={styles.postInput}

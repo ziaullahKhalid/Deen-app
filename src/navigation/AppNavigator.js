@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { View, StyleSheet, Platform } from 'react-native';
+import { View, StyleSheet, Platform, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, BorderRadius } from '../theme';
+import { onAuthChange } from '../services/authService';
 
 import LoginScreen from '../screens/auth/LoginScreen';
 import RegisterScreen from '../screens/auth/RegisterScreen';
@@ -72,18 +73,43 @@ const MainTabs = () => (
   </Tab.Navigator>
 );
 
-const AppNavigator = () => (
-  <Stack.Navigator
-    screenOptions={{ headerShown: false }}
-    initialRouteName="Login"
-  >
-    <Stack.Screen name="Login" component={LoginScreen} />
-    <Stack.Screen name="Register" component={RegisterScreen} />
-    <Stack.Screen name="MainTabs" component={MainTabs} />
-  </Stack.Navigator>
-);
+const AppNavigator = () => {
+  const [user, setUser] = useState(undefined);
+
+  useEffect(() => {
+    const unsubscribe = onAuthChange((authUser) => {
+      setUser(authUser);
+    });
+    return unsubscribe;
+  }, []);
+
+  if (user === undefined) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+      </View>
+    );
+  }
+
+  return (
+    <Stack.Navigator
+      screenOptions={{ headerShown: false }}
+      initialRouteName={user ? 'MainTabs' : 'Login'}
+    >
+      <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="Register" component={RegisterScreen} />
+      <Stack.Screen name="MainTabs" component={MainTabs} />
+    </Stack.Navigator>
+  );
+};
 
 const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Colors.background,
+  },
   activeTabIcon: {
     backgroundColor: `${Colors.primary}12`,
     borderRadius: BorderRadius.sm,

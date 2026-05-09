@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors, Gradients, Typography, Spacing, BorderRadius } from '../../theme';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
+import { registerUser } from '../../services/authService';
 
 const { height } = Dimensions.get('window');
 
@@ -41,13 +42,16 @@ const RegisterScreen = ({ navigation }) => {
     setLoading(true);
     setError('');
     try {
-      // Firebase registration will be connected here
-      // await registerUser(email, password, name);
+      await registerUser(email, password, name);
       if (navigation && navigation.replace) {
         navigation.replace('MainTabs');
       }
     } catch (err) {
-      setError(err.message || 'Registration failed');
+      const code = err.code;
+      if (code === 'auth/email-already-in-use') setError('This email is already registered');
+      else if (code === 'auth/invalid-email') setError('Invalid email address');
+      else if (code === 'auth/weak-password') setError('Password is too weak');
+      else setError(err.message || 'Registration failed');
     } finally {
       setLoading(false);
     }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,15 +6,40 @@ import {
   ScrollView,
   TouchableOpacity,
   Switch,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors, Gradients, Typography, Spacing, BorderRadius } from '../theme';
 import Avatar from '../components/common/Avatar';
+import { getCurrentUser, getUserProfile, logoutUser } from '../services/authService';
 
 const ProfileScreen = ({ navigation }) => {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
+  const [profile, setProfile] = useState(null);
+  const user = getCurrentUser();
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (user) {
+        const data = await getUserProfile(user.uid);
+        setProfile(data);
+      }
+    };
+    loadProfile();
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+      if (navigation && navigation.replace) {
+        navigation.replace('Login');
+      }
+    } catch (err) {
+      Alert.alert('Error', 'Failed to log out');
+    }
+  };
 
   const SettingItem = ({ icon, title, subtitle, onPress, rightElement, color = Colors.text }) => (
     <TouchableOpacity style={styles.settingItem} onPress={onPress}>
@@ -36,14 +61,14 @@ const ProfileScreen = ({ navigation }) => {
       <LinearGradient colors={Gradients.header} style={styles.profileHeader}>
         <View style={styles.profileInfo}>
           <View style={styles.avatarContainer}>
-            <Avatar name="User" size={80} />
+            <Avatar name={user?.displayName || 'User'} size={80} />
             <TouchableOpacity style={styles.editAvatarButton}>
               <Ionicons name="camera" size={16} color="#FFF" />
             </TouchableOpacity>
           </View>
-          <Text style={styles.profileName}>Your Name</Text>
-          <Text style={styles.profileEmail}>user@islamicqadeem.com</Text>
-          <Text style={styles.profileBio}>Seeking knowledge, sharing light</Text>
+          <Text style={styles.profileName}>{user?.displayName || 'Your Name'}</Text>
+          <Text style={styles.profileEmail}>{user?.email || 'user@islamicqadeem.com'}</Text>
+          <Text style={styles.profileBio}>{profile?.bio || 'Seeking knowledge, sharing light'}</Text>
         </View>
 
         <View style={styles.statsRow}>
@@ -149,7 +174,7 @@ const ProfileScreen = ({ navigation }) => {
           />
         </View>
 
-        <TouchableOpacity style={styles.logoutButton}>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Ionicons name="log-out-outline" size={20} color={Colors.error} />
           <Text style={styles.logoutText}>Log Out</Text>
         </TouchableOpacity>

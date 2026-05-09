@@ -4,15 +4,15 @@ import { getFirestore } from 'firebase/firestore';
 import { getDatabase } from 'firebase/database';
 import { getStorage } from 'firebase/storage';
 
-// Replace with your Firebase configuration
 const firebaseConfig = {
-  apiKey: 'YOUR_API_KEY',
-  authDomain: 'YOUR_PROJECT.firebaseapp.com',
-  projectId: 'YOUR_PROJECT_ID',
-  storageBucket: 'YOUR_PROJECT.appspot.com',
-  messagingSenderId: 'YOUR_SENDER_ID',
-  appId: 'YOUR_APP_ID',
-  databaseURL: 'https://YOUR_PROJECT.firebaseio.com',
+  apiKey: 'AIzaSyA9Ta5t3xBirlqj6_fZlj_E_dcdpNomLSg',
+  authDomain: 'islamic-qadeem.firebaseapp.com',
+  projectId: 'islamic-qadeem',
+  storageBucket: 'islamic-qadeem.firebasestorage.app',
+  messagingSenderId: '1077933191799',
+  appId: '1:1077933191799:web:cde4c2abb824d2fd194c72',
+  measurementId: 'G-ZNYBMR11EM',
+  databaseURL: 'https://islamic-qadeem-default-rtdb.firebaseio.com',
 };
 
 const app = initializeApp(firebaseConfig);

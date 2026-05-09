@@ -13,16 +13,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors, Gradients, Typography, Spacing, BorderRadius } from '../../theme';
 import Avatar from '../../components/common/Avatar';
-
-const DEMO_MESSAGES = [
-  { id: '1', text: 'Assalamu Alaikum!', senderId: 'other', timestamp: '10:00 AM' },
-  { id: '2', text: 'Wa Alaikum Assalam! How are you?', senderId: 'me', timestamp: '10:01 AM' },
-  { id: '3', text: 'Alhamdulillah, I am doing well. Have you prepared for the Friday lecture?', senderId: 'other', timestamp: '10:02 AM' },
-  { id: '4', text: 'Yes, I have been reviewing the notes. The topic on Islamic history is fascinating SubhanAllah', senderId: 'me', timestamp: '10:03 AM' },
-  { id: '5', text: 'Indeed! The early Islamic civilization made incredible contributions to science and mathematics', senderId: 'other', timestamp: '10:05 AM' },
-  { id: '6', text: 'JazakAllah Khair for reminding me. See you at the mosque!', senderId: 'me', timestamp: '10:06 AM' },
-  { id: '7', text: 'InshaaAllah! May Allah bless your day', senderId: 'other', timestamp: '10:07 AM' },
-];
+import { sendMessage, subscribeToMessages } from '../../services/chatService';
+import { getCurrentUser } from '../../services/authService';
 
 const MessageBubble = ({ message, isMe }) => (
   <View style={[styles.messageBubbleContainer, isMe ? styles.myMessage : styles.otherMessage]}>
@@ -44,23 +36,39 @@ const MessageBubble = ({ message, isMe }) => (
 
 const ChatRoomScreen = ({ route, navigation }) => {
   const chatName = route?.params?.chatName || 'Chat';
-  const [messages, setMessages] = useState(DEMO_MESSAGES);
+  const chatId = route?.params?.chatId || 'general';
+  const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
   const flatListRef = useRef(null);
+  const user = getCurrentUser();
 
-  const sendMessage = () => {
+  useEffect(() => {
+    const unsubscribe = subscribeToMessages(chatId, (msgs) => {
+      const formatted = msgs.map((msg) => ({
+        ...msg,
+        senderId: msg.senderId === user?.uid ? 'me' : msg.senderId,
+        timestamp: msg.timestamp
+          ? new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          : '',
+      }));
+      setMessages(formatted);
+      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+    });
+    return unsubscribe;
+  }, [chatId]);
+
+  const handleSendMessage = async () => {
     if (!inputText.trim()) return;
-    const newMessage = {
-      id: Date.now().toString(),
-      text: inputText.trim(),
-      senderId: 'me',
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    };
-    setMessages((prev) => [...prev, newMessage]);
-    setInputText('');
-    setTimeout(() => {
-      flatListRef.current?.scrollToEnd({ animated: true });
-    }, 100);
+    try {
+      await sendMessage(chatId, {
+        text: inputText.trim(),
+        senderId: user?.uid || 'anonymous',
+        senderName: user?.displayName || 'User',
+      });
+      setInputText('');
+    } catch (err) {
+      console.log('Error sending message:', err);
+    }
   };
 
   return (
@@ -130,7 +138,7 @@ const ChatRoomScreen = ({ route, navigation }) => {
             multiline
           />
           {inputText.trim() ? (
-            <TouchableOpacity style={styles.sendButton} onPress={sendMessage}>
+            <TouchableOpacity style={styles.sendButton} onPress={handleSendMessage}>
               <Ionicons name="send" size={20} color={Colors.textOnPrimary} />
             </TouchableOpacity>
           ) : (

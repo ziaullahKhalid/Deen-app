@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors, Gradients, Typography, Spacing, BorderRadius } from '../../theme';
 import IslamicHeader from '../../components/common/IslamicHeader';
+import { collection, getCountFromServer } from 'firebase/firestore';
+import { db } from '../../config/firebase';
+import { getCurrentUser } from '../../services/authService';
 
 const { width } = Dimensions.get('window');
 
@@ -63,6 +66,33 @@ const RecentActivityItem = ({ icon, text, time, color }) => (
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
+  const [stats, setStats] = useState({ users: 0, posts: 0, videos: 0, messages: 0 });
+  const user = getCurrentUser();
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const [usersSnap, postsSnap] = await Promise.all([
+          getCountFromServer(collection(db, 'users')),
+          getCountFromServer(collection(db, 'posts')),
+        ]);
+        setStats({
+          users: usersSnap.data().count,
+          posts: postsSnap.data().count,
+          videos: 0,
+          messages: 0,
+        });
+      } catch (err) {
+        console.log('Error fetching stats:', err);
+      }
+    };
+    fetchStats();
+  }, []);
+
+  const formatCount = (n) => {
+    if (n >= 1000) return `${(n / 1000).toFixed(1)}K`;
+    return n.toString();
+  };
 
   return (
     <View style={styles.container}>
@@ -84,7 +114,9 @@ const AdminDashboard = () => {
             style={styles.welcomeGradient}
           >
             <View style={styles.welcomeContent}>
-              <Text style={styles.welcomeTitle}>Welcome back, Admin</Text>
+              <Text style={styles.welcomeTitle}>
+                Welcome back, {user?.displayName || 'Admin'}
+              </Text>
               <Text style={styles.welcomeSubtitle}>
                 Here is your platform overview for today
               </Text>
@@ -99,33 +131,29 @@ const AdminDashboard = () => {
           <StatCard
             icon="people"
             title="Total Users"
-            value="12,458"
-            trend="+12.5%"
+            value={formatCount(stats.users)}
+            trend="Live"
             trendUp
             color={Colors.primary}
           />
           <StatCard
             icon="document-text"
             title="Total Posts"
-            value="45,672"
-            trend="+8.3%"
+            value={formatCount(stats.posts)}
+            trend="Live"
             trendUp
             color={Colors.info}
           />
           <StatCard
             icon="videocam"
             title="Videos"
-            value="3,284"
-            trend="+15.7%"
-            trendUp
+            value={formatCount(stats.videos)}
             color={Colors.warning}
           />
           <StatCard
             icon="chatbubbles"
             title="Messages"
-            value="89.2K"
-            trend="+22.1%"
-            trendUp
+            value={formatCount(stats.messages)}
             color={Colors.accent}
           />
         </View>

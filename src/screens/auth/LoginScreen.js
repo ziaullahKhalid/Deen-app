@@ -8,12 +8,14 @@ import {
   KeyboardAvoidingView,
   Platform,
   Dimensions,
+  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Gradients, Typography, Spacing, BorderRadius } from '../../theme';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
+import { loginUser, signInWithGoogle, resetPassword } from '../../services/authService';
 
 const { width, height } = Dimensions.get('window');
 
@@ -23,6 +25,8 @@ const LoginScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  const [googleLoading, setGoogleLoading] = useState(false);
+
   const handleLogin = async () => {
     if (!email || !password) {
       setError('Please fill in all fields');
@@ -31,16 +35,49 @@ const LoginScreen = ({ navigation }) => {
     setLoading(true);
     setError('');
     try {
-      // Firebase login will be connected here
-      // await loginUser(email, password);
-      // For demo, navigate directly
+      await loginUser(email, password);
       if (navigation && navigation.replace) {
         navigation.replace('MainTabs');
       }
     } catch (err) {
-      setError(err.message || 'Login failed');
+      const code = err.code;
+      if (code === 'auth/user-not-found') setError('No account found with this email');
+      else if (code === 'auth/wrong-password') setError('Incorrect password');
+      else if (code === 'auth/invalid-email') setError('Invalid email address');
+      else if (code === 'auth/too-many-requests') setError('Too many attempts. Try again later');
+      else setError(err.message || 'Login failed');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setGoogleLoading(true);
+    setError('');
+    try {
+      await signInWithGoogle();
+      if (navigation && navigation.replace) {
+        navigation.replace('MainTabs');
+      }
+    } catch (err) {
+      if (err.code !== 'auth/popup-closed-by-user') {
+        setError(err.message || 'Google sign-in failed');
+      }
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setError('Enter your email first, then tap Forgot Password');
+      return;
+    }
+    try {
+      await resetPassword(email);
+      Alert.alert('Password Reset', 'Check your email for a password reset link.');
+    } catch (err) {
+      setError(err.message || 'Failed to send reset email');
     }
   };
 
@@ -113,7 +150,7 @@ const LoginScreen = ({ navigation }) => {
               icon="lock-closed-outline"
             />
 
-            <TouchableOpacity style={styles.forgotPassword}>
+            <TouchableOpacity style={styles.forgotPassword} onPress={handleForgotPassword}>
               <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
             </TouchableOpacity>
 
@@ -130,17 +167,16 @@ const LoginScreen = ({ navigation }) => {
               <View style={styles.dividerLine} />
             </View>
 
-            <View style={styles.socialButtons}>
-              <TouchableOpacity style={styles.socialButton}>
-                <Ionicons name="logo-google" size={22} color="#DB4437" />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.socialButton}>
-                <Ionicons name="logo-apple" size={22} color="#000" />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.socialButton}>
-                <Ionicons name="logo-facebook" size={22} color="#4267B2" />
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity
+              style={styles.googleButton}
+              onPress={handleGoogleSignIn}
+              disabled={googleLoading}
+            >
+              <Ionicons name="logo-google" size={20} color="#DB4437" />
+              <Text style={styles.googleButtonText}>
+                {googleLoading ? 'Signing in...' : 'Continue with Google'}
+              </Text>
+            </TouchableOpacity>
 
             <View style={styles.signupRow}>
               <Text style={styles.signupText}>Don't have an account? </Text>
@@ -286,20 +322,20 @@ const styles = StyleSheet.create({
     color: Colors.textLight,
     marginHorizontal: Spacing.md,
   },
-  socialButtons: {
+  googleButton: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    gap: Spacing.md,
-  },
-  socialButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: Colors.inputBg,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: Colors.inputBg,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
     borderWidth: 1,
     borderColor: Colors.border,
+    gap: Spacing.sm,
+  },
+  googleButtonText: {
+    ...Typography.button,
+    color: Colors.text,
   },
   signupRow: {
     flexDirection: 'row',
