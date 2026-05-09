@@ -39,3 +39,10 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# APK builds
+*.apk
+
+# test artifacts
+test-plan.md
+test-report.md
