@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deen App - Admin Login</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, #0A1628 0%, #0D3B0F 50%, #1B5E20 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .login-container {
+      background: rgba(255,255,255,0.95);
+      border-radius: 24px;
+      padding: 48px 40px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      backdrop-filter: blur(20px);
+    }
+    .logo {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .logo-icon {
+      width: 72px;
+      height: 72px;
+      background: linear-gradient(135deg, #D4AF37, #F5E6B8, #D4AF37);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      font-size: 36px;
+      box-shadow: 0 4px 20px rgba(212,175,55,0.4);
+    }
+    .logo h1 {
+      color: #1B5E20;
+      font-size: 28px;
+      font-weight: 800;
+    }
+    .logo p {
+      color: #666;
+      font-size: 14px;
+      margin-top: 4px;
+    }
+    .logo .admin-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #1B5E20, #2E7D32);
+      color: white;
+      padding: 4px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 12px;
+      letter-spacing: 1px;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 8px;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 14px 16px;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      font-size: 15px;
+      transition: all 0.3s;
+      outline: none;
+    }
+    .form-group input:focus {
+      border-color: #1B5E20;
+      box-shadow: 0 0 0 3px rgba(27,94,32,0.1);
+    }
+    .otp-inputs {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .otp-inputs input {
+      width: 48px;
+      height: 56px;
+      text-align: center;
+      font-size: 22px;
+      font-weight: 700;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      outline: none;
+      transition: all 0.3s;
+    }
+    .otp-inputs input:focus {
+      border-color: #1B5E20;
+      box-shadow: 0 0 0 3px rgba(27,94,32,0.15);
+      background: #f1f8e9;
+    }
+    .btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #1B5E20, #2E7D32);
+      color: white;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(27,94,32,0.3); }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .btn-outline {
+      background: transparent;
+      border: 2px solid #1B5E20;
+      color: #1B5E20;
+      margin-top: 12px;
+    }
+    .btn-outline:hover { background: #f1f8e9; }
+    .message {
+      padding: 12px 16px;
+      border-radius: 10px;
+      margin-bottom: 16px;
+      font-size: 14px;
+      display: none;
+    }
+    .message.error { background: #fce4ec; color: #c62828; display: block; }
+    .message.success { background: #e8f5e9; color: #1B5E20; display: block; }
+    .message.info { background: #fff3e0; color: #e65100; display: block; }
+    .dev-otp {
+      background: #e8f5e9;
+      border: 2px dashed #1B5E20;
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    .dev-otp .label { font-size: 12px; color: #666; margin-bottom: 4px; }
+    .dev-otp .code { font-size: 32px; font-weight: 800; color: #1B5E20; letter-spacing: 8px; font-family: monospace; }
+    .timer {
+      text-align: center;
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 16px;
+    }
+    .timer span { font-weight: 700; color: #1B5E20; }
+    .hidden { display: none !important; }
+    .security-note {
+      text-align: center;
+      font-size: 11px;
+      color: #999;
+      margin-top: 24px;
+    }
+    .security-note .icon { font-size: 14px; }
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <div class="logo">
+      <div class="logo-icon">🌙</div>
+      <h1>Deen App</h1>
+      <p>Your Faith, Your Community</p>
+      <div class="admin-badge">🛡️ ADMIN PANEL</div>
+    </div>
+
+    <div id="message" class="message"></div>
+
+    <!-- Step 1: Email Input -->
+    <div id="step-email">
+      <div class="form-group">
+        <label>Admin Email</label>
+        <input type="email" id="email" placeholder="Enter admin email address" autocomplete="email">
+      </div>
+      <button class="btn btn-primary" id="sendOtpBtn" onclick="sendOTP()">
+        Send Verification Code
+      </button>
+    </div>
+
+    <!-- Step 2: OTP Verification -->
+    <div id="step-otp" class="hidden">
+      <div id="devOtpBox" class="dev-otp hidden">
+        <div class="label">🔧 Dev Mode — Your OTP Code:</div>
+        <div class="code" id="devOtpCode"></div>
+      </div>
+      <p style="text-align:center;color:#666;font-size:14px;margin-bottom:16px;">
+        Enter the 6-digit code sent to<br><strong id="otpEmail"></strong>
+      </p>
+      <div class="otp-inputs" id="otpInputs">
+        <input type="text" maxlength="1" inputmode="numeric" data-index="0">
+        <input type="text" maxlength="1" inputmode="numeric" data-index="1">
+        <input type="text" maxlength="1" inputmode="numeric" data-index="2">
+        <input type="text" maxlength="1" inputmode="numeric" data-index="3">
+        <input type="text" maxlength="1" inputmode="numeric" data-index="4">
+        <input type="text" maxlength="1" inputmode="numeric" data-index="5">
+      </div>
+      <div class="timer" id="timer">Code expires in <span id="timerValue">5:00</span></div>
+      <button class="btn btn-primary" id="verifyBtn" onclick="verifyOTP()">
+        Verify & Login
+      </button>
+      <button class="btn btn-outline" id="resendBtn" onclick="resendOTP()" disabled>
+        Resend Code (60s)
+      </button>
+      <button class="btn btn-outline" onclick="backToEmail()" style="margin-top:8px">
+        ← Change Email
+      </button>
+    </div>
+
+    <div class="security-note">
+      <span class="icon">🔒</span> Secured with OTP verification<br>
+      Only authorized admin email can access this panel
+    </div>
+  </div>
+
+  <script>
+    const API = window.location.origin;
+    let currentEmail = '';
+    let resendTimer = null;
+    let expiryTimer = null;
+    let resendCountdown = 60;
+    let expiryCountdown = 300;
+
+    const otpInputs = document.querySelectorAll('.otp-inputs input');
+    otpInputs.forEach((input, idx) => {
+      input.addEventListener('input', (e) => {
+        const val = e.target.value.replace(/\D/g, '');
+        e.target.value = val;
+        if (val && idx < 5) otpInputs[idx + 1].focus();
+      });
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && !e.target.value && idx > 0) {
+          otpInputs[idx - 1].focus();
+        }
+      });
+      input.addEventListener('paste', (e) => {
+        e.preventDefault();
+        const text = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 6);
+        text.split('').forEach((ch, i) => { if (otpInputs[i]) otpInputs[i].value = ch; });
+        if (text.length === 6) otpInputs[5].focus();
+      });
+    });
+
+    function showMessage(text, type) {
+      const el = document.getElementById('message');
+      el.textContent = text;
+      el.className = 'message ' + type;
+    }
+
+    function clearMessage() {
+      document.getElementById('message').className = 'message';
+    }
+
+    function setLoading(btn, loading) {
+      if (loading) {
+        btn.disabled = true;
+        btn.dataset.text = btn.textContent;
+        btn.innerHTML = '<span class="spinner"></span> Please wait...';
+      } else {
+        btn.disabled = false;
+        btn.textContent = btn.dataset.text;
+      }
+    }
+
+    async function sendOTP() {
+      const email = document.getElementById('email').value.trim();
+      if (!email) return showMessage('Please enter your email address.', 'error');
+      clearMessage();
+
+      const btn = document.getElementById('sendOtpBtn');
+      setLoading(btn, true);
+
+      try {
+        const res = await fetch(`${API}/admin/auth/send-otp`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email }),
+        });
+        const data = await res.json();
+
+        if (!data.success) {
+          showMessage(data.error, 'error');
+          setLoading(btn, false);
+          return;
+        }
+
+        currentEmail = email;
+        document.getElementById('otpEmail').textContent = email;
+        document.getElementById('step-email').classList.add('hidden');
+        document.getElementById('step-otp').classList.remove('hidden');
+
+        if (data.devOtp) {
+          document.getElementById('devOtpBox').classList.remove('hidden');
+          document.getElementById('devOtpCode').textContent = data.devOtp;
+          showMessage('Dev Mode: OTP shown above (no email sent).', 'info');
+        } else {
+          showMessage('Verification code sent to your email!', 'success');
+        }
+
+        startTimers();
+        otpInputs[0].focus();
+      } catch (err) {
+        showMessage('Connection error. Is the backend running?', 'error');
+      }
+      setLoading(btn, false);
+    }
+
+    function startTimers() {
+      resendCountdown = 60;
+      expiryCountdown = 300;
+      clearInterval(resendTimer);
+      clearInterval(expiryTimer);
+
+      const resendBtn = document.getElementById('resendBtn');
+      resendBtn.disabled = true;
+      resendTimer = setInterval(() => {
+        resendCountdown--;
+        if (resendCountdown <= 0) {
+          clearInterval(resendTimer);
+          resendBtn.disabled = false;
+          resendBtn.textContent = 'Resend Code';
+        } else {
+          resendBtn.textContent = `Resend Code (${resendCountdown}s)`;
+        }
+      }, 1000);
+
+      expiryTimer = setInterval(() => {
+        expiryCountdown--;
+        const min = Math.floor(expiryCountdown / 60);
+        const sec = expiryCountdown % 60;
+        document.getElementById('timerValue').textContent = `${min}:${sec.toString().padStart(2, '0')}`;
+        if (expiryCountdown <= 0) {
+          clearInterval(expiryTimer);
+          showMessage('Code expired. Please request a new one.', 'error');
+        }
+      }, 1000);
+    }
+
+    async function verifyOTP() {
+      const otp = Array.from(otpInputs).map(i => i.value).join('');
+      if (otp.length !== 6) return showMessage('Please enter all 6 digits.', 'error');
+      clearMessage();
+
+      const btn = document.getElementById('verifyBtn');
+      setLoading(btn, true);
+
+      try {
+        const res = await fetch(`${API}/admin/auth/verify-otp`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: currentEmail, otp }),
+        });
+        const data = await res.json();
+
+        if (!data.success) {
+          showMessage(data.error, 'error');
+          setLoading(btn, false);
+          return;
+        }
+
+        localStorage.setItem('adminToken', data.token);
+        localStorage.setItem('adminEmail', currentEmail);
+        showMessage('Login successful! Redirecting...', 'success');
+        clearInterval(resendTimer);
+        clearInterval(expiryTimer);
+        setTimeout(() => { window.location.href = '/admin/dashboard'; }, 1000);
+      } catch (err) {
+        showMessage('Connection error.', 'error');
+      }
+      setLoading(btn, false);
+    }
+
+    async function resendOTP() {
+      clearMessage();
+      const btn = document.getElementById('resendBtn');
+      btn.disabled = true;
+
+      try {
+        const res = await fetch(`${API}/admin/auth/send-otp`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: currentEmail }),
+        });
+        const data = await res.json();
+
+        if (!data.success) {
+          showMessage(data.error, 'error');
+          return;
+        }
+
+        if (data.devOtp) {
+          document.getElementById('devOtpCode').textContent = data.devOtp;
+          showMessage('New OTP generated (dev mode).', 'info');
+        } else {
+          showMessage('New code sent to your email!', 'success');
+        }
+
+        otpInputs.forEach(i => i.value = '');
+        otpInputs[0].focus();
+        startTimers();
+      } catch (err) {
+        showMessage('Connection error.', 'error');
+      }
+    }
+
+    function backToEmail() {
+      clearInterval(resendTimer);
+      clearInterval(expiryTimer);
+      clearMessage();
+      document.getElementById('step-email').classList.remove('hidden');
+      document.getElementById('step-otp').classList.add('hidden');
+      document.getElementById('devOtpBox').classList.add('hidden');
+      otpInputs.forEach(i => i.value = '');
+    }
+
+    // Check if already logged in
+    const existingToken = localStorage.getItem('adminToken');
+    if (existingToken) {
+      fetch(`${API}/admin/api/stats`, {
+        headers: { 'Authorization': `Bearer ${existingToken}` },
+      }).then(r => {
+        if (r.ok) window.location.href = '/admin/dashboard';
+      }).catch(() => {});
+    }
+  </script>
+</body>
+</html>
