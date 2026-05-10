@@ -4,7 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { View, StyleSheet, Platform, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Colors, BorderRadius } from '../theme';
+import { Colors } from '../theme';
 import { onAuthChange } from '../services/authService';
 
 import LoginScreen from '../screens/auth/LoginScreen';
@@ -14,8 +14,6 @@ import ReelsScreen from '../screens/reels/ReelsScreen';
 import ChatListScreen from '../screens/chat/ChatListScreen';
 import ChatRoomScreen from '../screens/chat/ChatRoomScreen';
 import ProfileScreen from '../screens/ProfileScreen';
-import NotificationsScreen from '../screens/NotificationsScreen';
-import SearchScreen from '../screens/SearchScreen';
 import CreatePostScreen from '../screens/CreatePostScreen';
 
 const Stack = createStackNavigator();
@@ -29,13 +27,15 @@ const ChatStackNavigator = () => (
   </ChatStack.Navigator>
 );
 
-const PostButton = ({ onPress }) => (
-  <TouchableOpacity style={styles.postButtonContainer} onPress={onPress} activeOpacity={0.8}>
+const UploadButton = ({ onPress }) => (
+  <TouchableOpacity style={styles.uploadButtonOuter} onPress={onPress} activeOpacity={0.75}>
     <LinearGradient
-      colors={['#D4AF37', '#E6C65A']}
-      style={styles.postButton}
+      colors={['#D4AF37', '#F0D878', '#D4AF37']}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.uploadButton}
     >
-      <Ionicons name="add" size={30} color="#0A1628" />
+      <Ionicons name="add" size={32} color="#0A1628" />
     </LinearGradient>
   </TouchableOpacity>
 );
@@ -44,51 +44,56 @@ const MainTabs = () => (
   <Tab.Navigator
     screenOptions={({ route }) => ({
       headerShown: false,
-      tabBarIcon: ({ focused, color, size }) => {
+      tabBarIcon: ({ focused, color }) => {
         let iconName;
-        if (route.name === 'Feed') iconName = focused ? 'home' : 'home-outline';
-        else if (route.name === 'Search') iconName = focused ? 'search' : 'search-outline';
-        else if (route.name === 'Post') iconName = 'add';
-        else if (route.name === 'Reels') iconName = focused ? 'play-circle' : 'play-circle-outline';
-        else if (route.name === 'Profile') iconName = focused ? 'person' : 'person-outline';
-
-        if (route.name === 'Post') return null;
+        let iconSize = 24;
+        if (route.name === 'Feed') { iconName = focused ? 'home' : 'home-outline'; iconSize = 25; }
+        else if (route.name === 'Reels') { iconName = focused ? 'play-circle' : 'play-circle-outline'; iconSize = 25; }
+        else if (route.name === 'Upload') return null;
+        else if (route.name === 'Inbox') { iconName = focused ? 'chatbubbles' : 'chatbubbles-outline'; iconSize = 24; }
+        else if (route.name === 'Profile') { iconName = focused ? 'person-circle' : 'person-circle-outline'; iconSize = 26; }
 
         return (
-          <View style={focused ? styles.activeTabIcon : styles.tabIcon}>
-            <Ionicons name={iconName} size={focused ? 26 : 23} color={color} />
-            {focused && <View style={styles.activeIndicator} />}
+          <View style={styles.tabIconWrap}>
+            <Ionicons name={iconName} size={iconSize} color={color} />
+            {focused && <View style={styles.tabDot} />}
           </View>
         );
       },
       tabBarActiveTintColor: '#1B5E20',
-      tabBarInactiveTintColor: '#9E9E9E',
+      tabBarInactiveTintColor: '#AAAAAA',
+      tabBarShowLabel: true,
       tabBarStyle: {
-        backgroundColor: '#FFFFFF',
+        position: 'absolute',
+        bottom: Platform.OS === 'ios' ? 20 : 12,
+        left: 16,
+        right: 16,
+        height: 68,
+        backgroundColor: 'rgba(255,255,255,0.92)',
+        borderRadius: 28,
         borderTopWidth: 0,
-        height: Platform.OS === 'ios' ? 88 : 65,
         paddingTop: 8,
-        paddingBottom: Platform.OS === 'ios' ? 28 : 10,
+        paddingBottom: 10,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: -6 },
-        shadowOpacity: 0.08,
-        shadowRadius: 16,
-        elevation: 20,
+        shadowOffset: { width: 0, height: -8 },
+        shadowOpacity: 0.12,
+        shadowRadius: 24,
+        elevation: 25,
       },
       tabBarLabelStyle: {
-        fontSize: 11,
+        fontSize: 10,
         fontWeight: '600',
         marginTop: 2,
       },
-      tabBarButton: route.name === 'Post' ? (props) => (
-        <PostButton onPress={props.onPress} />
+      tabBarButton: route.name === 'Upload' ? (props) => (
+        <UploadButton onPress={props.onPress} />
       ) : undefined,
     })}
   >
     <Tab.Screen name="Feed" component={FeedScreen} />
-    <Tab.Screen name="Search" component={SearchScreen} />
+    <Tab.Screen name="Reels" component={ReelsScreen} />
     <Tab.Screen
-      name="Post"
+      name="Upload"
       component={View}
       listeners={({ navigation }) => ({
         tabPress: (e) => {
@@ -97,7 +102,7 @@ const MainTabs = () => (
         },
       })}
     />
-    <Tab.Screen name="Reels" component={ReelsScreen} />
+    <Tab.Screen name="Inbox" component={ChatStackNavigator} />
     <Tab.Screen name="Profile" component={ProfileScreen} />
   </Tab.Navigator>
 );
@@ -133,7 +138,6 @@ const AppNavigator = () => {
         component={CreatePostScreen}
         options={{ presentation: 'modal' }}
       />
-      <Stack.Screen name="Notifications" component={NotificationsScreen} />
       <Stack.Screen name="ChatRoom" component={ChatRoomScreen} />
     </Stack.Navigator>
   );
@@ -146,37 +150,33 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#F8F9FA',
   },
-  tabIcon: {
+  tabIconWrap: {
     alignItems: 'center',
     justifyContent: 'center',
   },
-  activeTabIcon: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  activeIndicator: {
+  tabDot: {
     width: 5,
     height: 5,
     borderRadius: 2.5,
     backgroundColor: '#1B5E20',
     marginTop: 3,
   },
-  postButtonContainer: {
-    top: -18,
+  uploadButtonOuter: {
+    top: -22,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  postButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+  uploadButton: {
+    width: 58,
+    height: 58,
+    borderRadius: 29,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#D4AF37',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 10,
-    elevation: 10,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 14,
+    elevation: 12,
   },
 });
 

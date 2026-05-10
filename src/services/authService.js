@@ -32,10 +32,26 @@ export const registerUser = async (email, password, displayName) => {
 
 export const loginUser = async (email, password) => {
   const userCredential = await signInWithEmailAndPassword(auth, email, password);
-  const userRef = doc(db, 'users', userCredential.user.uid);
-  const userSnap = await getDoc(userRef);
-  if (userSnap.exists()) {
-    await updateDoc(userRef, { isOnline: true, lastSeen: serverTimestamp() });
+  try {
+    const userRef = doc(db, 'users', userCredential.user.uid);
+    const userSnap = await getDoc(userRef);
+    if (userSnap.exists()) {
+      await updateDoc(userRef, { isOnline: true, lastSeen: serverTimestamp() });
+    } else {
+      await setDoc(userRef, {
+        uid: userCredential.user.uid,
+        email: userCredential.user.email,
+        displayName: userCredential.user.displayName || email.split('@')[0],
+        photoURL: null,
+        bio: '',
+        createdAt: serverTimestamp(),
+        isAdmin: email === 'ziakhalid1045@gmail.com',
+        isOnline: true,
+        lastSeen: serverTimestamp(),
+      });
+    }
+  } catch (dbErr) {
+    console.log('Firestore update skipped:', dbErr.message);
   }
   return userCredential.user;
 };
@@ -43,10 +59,14 @@ export const loginUser = async (email, password) => {
 export const logoutUser = async () => {
   const user = auth.currentUser;
   if (user) {
-    const userRef = doc(db, 'users', user.uid);
-    const userSnap = await getDoc(userRef);
-    if (userSnap.exists()) {
-      await updateDoc(userRef, { isOnline: false, lastSeen: serverTimestamp() });
+    try {
+      const userRef = doc(db, 'users', user.uid);
+      const userSnap = await getDoc(userRef);
+      if (userSnap.exists()) {
+        await updateDoc(userRef, { isOnline: false, lastSeen: serverTimestamp() });
+      }
+    } catch (err) {
+      console.log('Firestore update skipped:', err.message);
     }
   }
   await signOut(auth);
@@ -61,9 +81,14 @@ export const getCurrentUser = () => auth.currentUser;
 export const onAuthChange = (callback) => onAuthStateChanged(auth, callback);
 
 export const getUserProfile = async (uid) => {
-  const docRef = doc(db, 'users', uid);
-  const docSnap = await getDoc(docRef);
-  return docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } : null;
+  try {
+    const docRef = doc(db, 'users', uid);
+    const docSnap = await getDoc(docRef);
+    return docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } : null;
+  } catch (err) {
+    console.log('getUserProfile error:', err.message);
+    return null;
+  }
 };
 
 export const updateUserProfile = async (uid, data) => {
