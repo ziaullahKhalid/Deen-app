@@ -15,6 +15,8 @@ import ChatListScreen from '../screens/chat/ChatListScreen';
 import ChatRoomScreen from '../screens/chat/ChatRoomScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import CreatePostScreen from '../screens/CreatePostScreen';
+import EmailOTPScreen from '../screens/auth/EmailOTPScreen';
+import OTPVerifyScreen from '../screens/auth/OTPVerifyScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -139,6 +141,8 @@ const AppNavigator = () => {
         options={{ presentation: 'modal' }}
       />
       <Stack.Screen name="ChatRoom" component={ChatRoomScreen} />
+      <Stack.Screen name="EmailOTP" component={EmailOTPScreen} />
+      <Stack.Screen name="OTPVerify" component={OTPVerifyScreen} />
     </Stack.Navigator>
   );
 };

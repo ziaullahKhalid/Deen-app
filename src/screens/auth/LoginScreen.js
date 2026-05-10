@@ -153,6 +153,20 @@ const LoginScreen = ({ navigation }) => {
               style={styles.loginButton}
             />
 
+            <View style={styles.dividerRow}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>or</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            <TouchableOpacity
+              style={styles.otpLoginButton}
+              onPress={() => navigation && navigation.navigate('EmailOTP')}
+            >
+              <Ionicons name="mail-outline" size={20} color="#1B5E20" />
+              <Text style={styles.otpLoginText}>Login with Email OTP</Text>
+            </TouchableOpacity>
+
             <View style={styles.signupRow}>
               <Text style={styles.signupText}>Don't have an account? </Text>
               <TouchableOpacity onPress={() => navigation && navigation.navigate('Register')}>
@@ -292,6 +306,37 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.primary,
     fontWeight: '700',
+  },
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 18,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#E0E0E0',
+  },
+  dividerText: {
+    color: '#999',
+    fontSize: 13,
+    paddingHorizontal: 12,
+  },
+  otpLoginButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#1B5E20',
+    backgroundColor: '#F1F8E9',
+    gap: 8,
+  },
+  otpLoginText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#1B5E20',
   },
 });
 
