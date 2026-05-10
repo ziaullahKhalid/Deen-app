@@ -103,7 +103,7 @@ const ReelItem = ({ item }) => {
       </LinearGradient>
 
       <View style={styles.topBar}>
-        <Text style={styles.reelsTitle}>Reels</Text>
+        <Text style={styles.reelsTitle}>Deen Reels</Text>
         <TouchableOpacity style={styles.searchButton}>
           <Ionicons name="search" size={24} color="#FFF" />
         </TouchableOpacity>

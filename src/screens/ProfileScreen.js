@@ -179,7 +179,7 @@ const ProfileScreen = ({ navigation }) => {
           <Text style={styles.logoutText}>Log Out</Text>
         </TouchableOpacity>
 
-        <Text style={styles.versionText}>Islamic Qadeem v1.0.0</Text>
+        <Text style={styles.versionText}>Deen App v2.0.0</Text>
       </View>
     </ScrollView>
   );

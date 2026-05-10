@@ -1,4 +1,4 @@
-# Islamic Qadeem
+# Deen App
 
 A Multi-Functional Social Media Ecosystem blending traditional Islamic values with cutting-edge, high-end UI/UX. This app integrates the core functionalities of Facebook (Posting), TikTok (Short Videos), and WhatsApp (Real-time Chat).
 
@@ -7,8 +7,9 @@ A Multi-Functional Social Media Ecosystem blending traditional Islamic values wi
 ### Feed System (Facebook-style)
 - Share posts, images, and long-form updates
 - Like, comment, and share capabilities
-- Create post modal with media attachment options
+- Dedicated Create Post screen with categories
 - Pull-to-refresh functionality
+- Notification bell with badge
 
 ### Short Video / Reels (TikTok-style)
 - Vertical scrolling short video player
@@ -26,32 +27,37 @@ A Multi-Functional Social Media Ecosystem blending traditional Islamic values wi
 - Group chat support
 - Search conversations
 
-### Admin Dashboard
-- User management
-- Content moderation
-- Platform analytics (users, posts, videos, messages)
-- Announcements system
-- Storage management
-- Recent activity feed
+### Search / Discover
+- Search people, topics, and hashtags
+- Trending topics with post counts
+- Category browsing (Quran, Hadith, Dua, Stories, Videos, Events)
+- Suggested people to follow
+
+### Notifications
+- Like, comment, follow, and share notifications
+- Filter by notification type
+- Read/unread status with badges
+- Mark all as read
 
 ### Authentication
-- Firebase-powered login and registration
-- Social login options (Google, Apple, Facebook)
+- Firebase-powered login and registration (Email/Password)
+- Forgot password flow
 - Secure session management
+- Admin access restricted to specific email only
 
 ## UI/UX Design
 
-- **Theme**: Subtle Islamic aesthetic (Ancient/Qadeem touch) integrated into a high-tech modern layout
+- **Theme**: Subtle Islamic aesthetic integrated into a high-tech modern layout
 - **Colors**: Deep emerald green primary with gold accents
 - **Style**: Modern, sleek, and intuitive "Best-in-Class" UI
-- **Patterns**: Decorative Islamic geometric patterns in headers
+- **Bottom Nav**: 5 tabs (Feed, Search, Post+, Reels, Profile) with elevated gold post button
 
 ## Tech Stack
 
 - **Frontend**: React Native (Expo)
 - **Navigation**: React Navigation (Stack + Bottom Tabs)
 - **Backend**: Firebase (Auth, Firestore, Realtime Database)
-- **Storage**: Firebase Storage + Google Drive API (planned)
+- **Storage**: Firebase Storage + Google Drive API
 - **Icons**: Expo Vector Icons (Ionicons)
 - **Styling**: React Native StyleSheet with custom theme system
 
@@ -63,18 +69,18 @@ src/
   components/
     common/        # Reusable UI components (Header, Avatar, Button, Input)
     feed/          # Feed-specific components (PostCard, CreatePostCard)
-    reels/         # Reels-specific components
-    chat/          # Chat-specific components
   screens/
     auth/          # Login and Registration screens
     feed/          # Feed/Home screen
     reels/         # Short video/Reels screen
     chat/          # Chat list and Chat room screens
-    admin/         # Admin dashboard
+    CreatePostScreen.js    # Dedicated post creation
+    NotificationsScreen.js # Notifications feed
+    SearchScreen.js        # Discover/Search page
+    ProfileScreen.js       # User profile & settings
   navigation/      # App navigation configuration
   services/        # Firebase service functions
   theme/           # Colors, typography, spacing constants
-  utils/           # Utility functions
 ```
 
 ## Getting Started
@@ -88,7 +94,7 @@ src/
 
 ```bash
 # Install dependencies
-npm install
+npm install --legacy-peer-deps
 
 # Start the development server
 npx expo start
@@ -98,9 +104,6 @@ npx expo start --web
 
 # Run on Android
 npx expo start --android
-
-# Run on iOS
-npx expo start --ios
 ```
 
 ### Firebase Setup
@@ -111,13 +114,10 @@ npx expo start --ios
 4. Set up Realtime Database
 5. Update `src/config/firebase.js` with your Firebase credentials
 
-## Roadmap
+## Admin Access
 
-- [ ] Google Drive API integration for media storage
-- [ ] AI-powered search assistant
-- [ ] Live streaming functionality
-- [ ] Push notifications
-- [ ] End-to-end encryption for chat
-- [ ] Video recording and upload
-- [ ] User profile customization
-- [ ] Content recommendation engine
+Admin panel is restricted to `ziakhalid1045@gmail.com` only. Other accounts do not have admin privileges.
+
+## Version
+
+v2.0.0 - Major UI/UX redesign with new screens (Search, Notifications, Post)

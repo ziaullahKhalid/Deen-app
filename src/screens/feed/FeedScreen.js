@@ -5,27 +5,21 @@ import {
   StyleSheet,
   RefreshControl,
   Text,
-  Modal,
   TouchableOpacity,
-  TextInput,
-  Alert,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Typography, Spacing, BorderRadius } from '../../theme';
-import IslamicHeader from '../../components/common/IslamicHeader';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Colors, Spacing, BorderRadius } from '../../theme';
 import PostCard from '../../components/feed/PostCard';
 import CreatePostCard from '../../components/feed/CreatePostCard';
-import Avatar from '../../components/common/Avatar';
-import Button from '../../components/common/Button';
-import { createPost, getPosts, likePost, unlikePost } from '../../services/feedService';
+import { getPosts } from '../../services/feedService';
 import { getCurrentUser } from '../../services/authService';
 
-const FeedScreen = () => {
+const FeedScreen = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [posts, setPosts] = useState([]);
-  const [showCreatePost, setShowCreatePost] = useState(false);
-  const [newPostText, setNewPostText] = useState('');
   const [initialLoading, setInitialLoading] = useState(true);
 
   const user = getCurrentUser();
@@ -55,29 +49,14 @@ const FeedScreen = () => {
     setRefreshing(false);
   }, []);
 
-  const handleCreatePost = async () => {
-    if (!newPostText.trim()) return;
-    try {
-      await createPost({
-        authorId: user?.uid || 'anonymous',
-        authorName: user?.displayName || 'You',
-        authorAvatar: user?.photoURL || null,
-        content: newPostText.trim(),
-        imageUrl: null,
-      });
-      setNewPostText('');
-      setShowCreatePost(false);
-      await loadPosts();
-    } catch (err) {
-      Alert.alert('Error', 'Failed to create post. Please try again.');
-    }
-  };
-
   const renderItem = ({ item, index }) => {
     if (index === 0) {
       return (
         <>
-          <CreatePostCard onPress={() => setShowCreatePost(true)} />
+          <CreatePostCard
+            onPress={() => navigation && navigation.navigate('CreatePost')}
+            userName={user?.displayName || 'User'}
+          />
           <PostCard post={item} />
         </>
       );
@@ -87,11 +66,24 @@ const FeedScreen = () => {
 
   return (
     <View style={styles.container}>
-      <IslamicHeader
-        title="Islamic Qadeem"
-        subtitle="Your Community Feed"
-        rightIcon="search-outline"
-      />
+      <LinearGradient colors={['#0D3B0F', '#1B5E20']} style={styles.header}>
+        <View style={styles.headerLeft}>
+          <Text style={styles.headerTitle}>Deen App</Text>
+          <Text style={styles.headerSubtitle}>Your Community Feed</Text>
+        </View>
+        <View style={styles.headerRight}>
+          <TouchableOpacity
+            style={styles.headerBtn}
+            onPress={() => navigation && navigation.navigate('Notifications')}
+          >
+            <Ionicons name="notifications-outline" size={22} color="#FFFFFF" />
+            <View style={styles.notifBadge} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.headerBtn}>
+            <Ionicons name="chatbubble-ellipses-outline" size={22} color="#FFFFFF" />
+          </TouchableOpacity>
+        </View>
+      </LinearGradient>
 
       <FlatList
         data={posts}
@@ -103,74 +95,32 @@ const FeedScreen = () => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={[Colors.primary]}
-            tintColor={Colors.primary}
+            colors={['#1B5E20']}
+            tintColor="#1B5E20"
           />
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             {initialLoading ? (
-              <ActivityIndicator size="large" color={Colors.primary} />
+              <ActivityIndicator size="large" color="#1B5E20" />
             ) : (
               <>
-                <Ionicons name="newspaper-outline" size={64} color={Colors.textLight} />
+                <View style={styles.emptyIconWrap}>
+                  <Ionicons name="newspaper-outline" size={56} color="#1B5E20" />
+                </View>
                 <Text style={styles.emptyText}>No posts yet</Text>
                 <Text style={styles.emptySubtext}>Be the first to share something!</Text>
+                <TouchableOpacity
+                  style={styles.emptyBtn}
+                  onPress={() => navigation && navigation.navigate('CreatePost')}
+                >
+                  <Text style={styles.emptyBtnText}>Create Post</Text>
+                </TouchableOpacity>
               </>
             )}
           </View>
         }
       />
-
-      <Modal
-        visible={showCreatePost}
-        animationType="slide"
-        transparent
-        onRequestClose={() => setShowCreatePost(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <TouchableOpacity onPress={() => setShowCreatePost(false)}>
-                <Ionicons name="close" size={24} color={Colors.text} />
-              </TouchableOpacity>
-              <Text style={styles.modalTitle}>Create Post</Text>
-              <TouchableOpacity onPress={handleCreatePost}>
-                <Text style={styles.postButton}>Post</Text>
-              </TouchableOpacity>
-            </View>
-            <View style={styles.modalBody}>
-              <View style={styles.authorRow}>
-                <Avatar name={user?.displayName || 'You'} size={40} />
-                <Text style={styles.authorLabel}>{user?.displayName || 'You'}</Text>
-              </View>
-              <TextInput
-                style={styles.postInput}
-                placeholder="What's on your mind?"
-                placeholderTextColor={Colors.textLight}
-                multiline
-                value={newPostText}
-                onChangeText={setNewPostText}
-                autoFocus
-              />
-            </View>
-            <View style={styles.modalActions}>
-              <TouchableOpacity style={styles.modalAction}>
-                <Ionicons name="image" size={24} color={Colors.success} />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.modalAction}>
-                <Ionicons name="videocam" size={24} color={Colors.error} />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.modalAction}>
-                <Ionicons name="location" size={24} color={Colors.info} />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.modalAction}>
-                <Ionicons name="happy" size={24} color={Colors.warning} />
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 };
@@ -178,84 +128,89 @@ const FeedScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: '#F5F6F8',
   },
-  listContent: {
-    paddingTop: Spacing.sm,
-    paddingBottom: Spacing.xxl,
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    paddingTop: 100,
-  },
-  emptyText: {
-    ...Typography.h3,
-    color: Colors.textSecondary,
-    marginTop: Spacing.md,
-  },
-  emptySubtext: {
-    ...Typography.bodySmall,
-    color: Colors.textLight,
-    marginTop: Spacing.xs,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    backgroundColor: Colors.surface,
-    borderTopLeftRadius: BorderRadius.xl,
-    borderTopRightRadius: BorderRadius.xl,
-    minHeight: '60%',
-  },
-  modalHeader: {
+  header: {
+    paddingTop: Platform.OS === 'ios' ? 55 : 45,
+    paddingBottom: 14,
+    paddingHorizontal: 20,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: Spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.divider,
   },
-  modalTitle: {
-    ...Typography.h4,
-    color: Colors.text,
+  headerLeft: {},
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
   },
-  postButton: {
-    ...Typography.button,
-    color: Colors.primary,
+  headerSubtitle: {
+    fontSize: 12,
+    color: '#D4AF37',
+    marginTop: 2,
   },
-  modalBody: {
-    flex: 1,
-    padding: Spacing.md,
-  },
-  authorRow: {
+  headerRight: {
     flexDirection: 'row',
+    gap: 6,
+  },
+  headerBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.15)',
     alignItems: 'center',
-    marginBottom: Spacing.md,
+    justifyContent: 'center',
   },
-  authorLabel: {
-    ...Typography.label,
-    color: Colors.text,
-    marginLeft: Spacing.sm,
+  notifBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 9,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#E53935',
+    borderWidth: 1.5,
+    borderColor: '#1B5E20',
+  },
+  listContent: {
+    paddingTop: 8,
+    paddingBottom: 100,
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    paddingTop: 80,
+  },
+  emptyIconWrap: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: 'rgba(27, 94, 32, 0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  emptyText: {
+    fontSize: 20,
     fontWeight: '600',
-  },
-  postInput: {
-    ...Typography.body,
     color: Colors.text,
-    flex: 1,
-    textAlignVertical: 'top',
-    minHeight: 150,
   },
-  modalActions: {
-    flexDirection: 'row',
-    padding: Spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: Colors.divider,
-    gap: Spacing.lg,
+  emptySubtext: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    marginTop: 4,
   },
-  modalAction: {
-    padding: Spacing.xs,
+  emptyBtn: {
+    marginTop: 20,
+    backgroundColor: '#1B5E20',
+    paddingHorizontal: 28,
+    paddingVertical: 12,
+    borderRadius: 24,
+  },
+  emptyBtnText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
 });
 

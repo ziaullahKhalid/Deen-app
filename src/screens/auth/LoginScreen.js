@@ -9,13 +9,14 @@ import {
   Platform,
   Dimensions,
   Alert,
+  StatusBar,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Gradients, Typography, Spacing, BorderRadius } from '../../theme';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
-import { loginUser, signInWithGoogle, resetPassword } from '../../services/authService';
+import { loginUser, resetPassword } from '../../services/authService';
 
 const { width, height } = Dimensions.get('window');
 
@@ -24,8 +25,6 @@ const LoginScreen = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-
-  const [googleLoading, setGoogleLoading] = useState(false);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -51,23 +50,6 @@ const LoginScreen = ({ navigation }) => {
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    setGoogleLoading(true);
-    setError('');
-    try {
-      await signInWithGoogle();
-      if (navigation && navigation.replace) {
-        navigation.replace('MainTabs');
-      }
-    } catch (err) {
-      if (err.code !== 'auth/popup-closed-by-user') {
-        setError(err.message || 'Google sign-in failed');
-      }
-    } finally {
-      setGoogleLoading(false);
-    }
-  };
-
   const handleForgotPassword = async () => {
     if (!email) {
       setError('Enter your email first, then tap Forgot Password');
@@ -83,32 +65,42 @@ const LoginScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <LinearGradient colors={Gradients.header} style={styles.topSection}>
-        <View style={styles.logoContainer}>
-          <View style={styles.logoOuter}>
-            <View style={styles.logoInner}>
-              <Ionicons name="moon" size={40} color={Colors.gold} />
-            </View>
-          </View>
-          <Text style={styles.appName}>Islamic Qadeem</Text>
-          <Text style={styles.tagline}>Ancient Wisdom, Modern Connection</Text>
-        </View>
-
-        <View style={styles.decorativePattern}>
-          {[...Array(12)].map((_, i) => (
+      <StatusBar barStyle="light-content" />
+      <LinearGradient
+        colors={['#0A1628', '#0D3B0F', '#1B5E20']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.topSection}
+      >
+        <View style={styles.starsContainer}>
+          {[...Array(20)].map((_, i) => (
             <View
               key={i}
               style={[
-                styles.patternElement,
+                styles.star,
                 {
-                  left: `${(i * 9) % 100}%`,
-                  top: `${(i * 15) % 100}%`,
-                  opacity: 0.08 + (i % 3) * 0.04,
-                  transform: [{ rotate: `${i * 30}deg` }],
+                  left: `${(i * 5.3) % 100}%`,
+                  top: `${(i * 7.1 + 5) % 90}%`,
+                  width: 2 + (i % 3),
+                  height: 2 + (i % 3),
+                  opacity: 0.3 + (i % 4) * 0.15,
                 },
               ]}
             />
           ))}
+        </View>
+
+        <View style={styles.logoContainer}>
+          <View style={styles.logoGlow}>
+            <LinearGradient
+              colors={['#D4AF37', '#F5E6B8', '#D4AF37']}
+              style={styles.logoCircle}
+            >
+              <Ionicons name="moon" size={42} color="#0A1628" />
+            </LinearGradient>
+          </View>
+          <Text style={styles.appName}>Deen App</Text>
+          <Text style={styles.tagline}>Your Faith, Your Community</Text>
         </View>
       </LinearGradient>
 
@@ -161,23 +153,6 @@ const LoginScreen = ({ navigation }) => {
               style={styles.loginButton}
             />
 
-            <View style={styles.divider}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>or</Text>
-              <View style={styles.dividerLine} />
-            </View>
-
-            <TouchableOpacity
-              style={styles.googleButton}
-              onPress={handleGoogleSignIn}
-              disabled={googleLoading}
-            >
-              <Ionicons name="logo-google" size={20} color="#DB4437" />
-              <Text style={styles.googleButtonText}>
-                {googleLoading ? 'Signing in...' : 'Continue with Google'}
-              </Text>
-            </TouchableOpacity>
-
             <View style={styles.signupRow}>
               <Text style={styles.signupText}>Don't have an account? </Text>
               <TouchableOpacity onPress={() => navigation && navigation.navigate('Register')}>
@@ -197,157 +172,124 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   topSection: {
-    height: height * 0.35,
+    height: height * 0.38,
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
     overflow: 'hidden',
   },
-  logoContainer: {
-    alignItems: 'center',
-    zIndex: 1,
-  },
-  logoOuter: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-    borderWidth: 2,
-    borderColor: Colors.gold,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(212, 175, 55, 0.1)',
-  },
-  logoInner: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    backgroundColor: 'rgba(212, 175, 55, 0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  appName: {
-    ...Typography.h1,
-    color: Colors.textOnPrimary,
-    marginTop: Spacing.md,
-    letterSpacing: 1,
-  },
-  tagline: {
-    ...Typography.bodySmall,
-    color: Colors.goldLight,
-    marginTop: Spacing.xs,
-    fontStyle: 'italic',
-  },
-  decorativePattern: {
+  starsContainer: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
   },
-  patternElement: {
+  star: {
     position: 'absolute',
-    width: 20,
-    height: 20,
-    borderWidth: 1,
-    borderColor: Colors.gold,
-    borderRadius: 4,
+    borderRadius: 10,
+    backgroundColor: '#D4AF37',
+  },
+  logoContainer: {
+    alignItems: 'center',
+    zIndex: 1,
+  },
+  logoGlow: {
+    shadowColor: '#D4AF37',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 20,
+    elevation: 15,
+  },
+  logoCircle: {
+    width: 85,
+    height: 85,
+    borderRadius: 42.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  appName: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    marginTop: Spacing.md,
+    letterSpacing: 2,
+  },
+  tagline: {
+    fontSize: 14,
+    color: '#D4AF37',
+    marginTop: 6,
+    fontStyle: 'italic',
+    letterSpacing: 0.5,
   },
   formSection: {
     flex: 1,
-    marginTop: -30,
+    marginTop: -25,
   },
   scrollContent: {
-    paddingHorizontal: Spacing.lg,
+    paddingHorizontal: 20,
     paddingBottom: Spacing.xl,
   },
   formCard: {
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.xl,
-    padding: Spacing.lg,
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 24,
+    elevation: 12,
   },
   welcomeText: {
-    ...Typography.h2,
+    fontSize: 24,
+    fontWeight: '700',
     color: Colors.text,
     textAlign: 'center',
   },
   subtitleText: {
-    ...Typography.bodySmall,
+    fontSize: 14,
     color: Colors.textSecondary,
     textAlign: 'center',
     marginBottom: Spacing.lg,
-    marginTop: Spacing.xs,
+    marginTop: 4,
   },
   errorContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFF0F0',
-    padding: Spacing.md,
-    borderRadius: BorderRadius.sm,
+    padding: 14,
+    borderRadius: 12,
     marginBottom: Spacing.md,
   },
   errorText: {
-    ...Typography.bodySmall,
+    fontSize: 13,
     color: Colors.error,
-    marginLeft: Spacing.sm,
+    marginLeft: 8,
+    flex: 1,
   },
   forgotPassword: {
     alignSelf: 'flex-end',
     marginBottom: Spacing.md,
   },
   forgotPasswordText: {
-    ...Typography.bodySmall,
+    fontSize: 13,
     color: Colors.primary,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   loginButton: {
-    marginTop: Spacing.sm,
-  },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: Spacing.lg,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: Colors.border,
-  },
-  dividerText: {
-    ...Typography.caption,
-    color: Colors.textLight,
-    marginHorizontal: Spacing.md,
-  },
-  googleButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.inputBg,
-    borderRadius: BorderRadius.md,
-    padding: Spacing.md,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    gap: Spacing.sm,
-  },
-  googleButtonText: {
-    ...Typography.button,
-    color: Colors.text,
+    marginTop: 4,
   },
   signupRow: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: Spacing.lg,
+    marginTop: 20,
   },
   signupText: {
-    ...Typography.bodySmall,
+    fontSize: 14,
     color: Colors.textSecondary,
   },
   signupLink: {
-    ...Typography.bodySmall,
+    fontSize: 14,
     color: Colors.primary,
     fontWeight: '700',
   },

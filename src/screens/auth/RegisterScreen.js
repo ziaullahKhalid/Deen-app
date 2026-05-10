@@ -69,7 +69,7 @@ const RegisterScreen = ({ navigation }) => {
           </TouchableOpacity>
           <View style={styles.headerCenter}>
             <Ionicons name="moon" size={32} color={Colors.gold} />
-            <Text style={styles.headerTitle}>Join Islamic Qadeem</Text>
+            <Text style={styles.headerTitle}>Join Deen App</Text>
             <Text style={styles.headerSubtitle}>Begin your spiritual journey</Text>
           </View>
           <View style={{ width: 40 }} />
